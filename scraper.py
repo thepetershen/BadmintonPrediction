@@ -6,11 +6,20 @@ import time
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+
 
 url = "https://bwfworldtour.bwfbadminton.com/calendar/?cyear=2025&rstate=all"
 driver = webdriver.Chrome()
 driver.get(url)
+
+# locates the broser button for the year. 
+year_button = driver.find_element(By.XPATH, '//select[@name="year-select"]')
+year_button.click()
+
 time.sleep(5)
+
+driver.quit()
 
 conn = psycopg2.connect(
     host="localhost",
