@@ -9,7 +9,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 
 
-url = "https://bwfworldtour.bwfbadminton.com/calendar/?cyear=2025&rstate=all"
+url = "https://bwfbadminton.com/rankings/?id=2"
 driver = webdriver.Chrome()
 driver.get(url)
 
