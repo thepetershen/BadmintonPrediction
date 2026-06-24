@@ -31,7 +31,10 @@ def cookie_check():
   except Exception as e:
     print ("no cookies")
 
-def get_page_players():
+# this gets all the players of a specific page
+# we want to store the href to a player, the name, and the ranking. This is not all the data for each player
+# but we will modify the rest on the specifics of a player page. 
+def get_page_players(players_name, players_href):
   # locates the elements that represent the rows of players (each being a plyer)
   players = driver.find_elements(By.XPATH, '//tr')
 
@@ -44,9 +47,12 @@ def get_page_players():
       # gets the specifc player name wrapper
       player_link = player_col.find_element(By.XPATH, ".//a")
 
+      url = player_link.get_attribute("href")
+
       raw_name = player_col.text
 
-      print (raw_name)
+      players_name.append(raw_name)
+      players_href.append(url)
 
     
     except Exception:
@@ -55,10 +61,13 @@ def get_page_players():
 
 cookie_check()
 
+players= []
+players_href = []
+
 # we loop for a certain amount to grab enough player names
 for i in range (0, 4):
    
-  get_page_players()
+  get_page_players(players, players_href)
 
   time.sleep(3)
 
@@ -69,7 +78,13 @@ for i in range (0, 4):
 
   time.sleep(3)
 
+driver.quit()
+print (len(players))
+print (len (players_href))
 
+df = pd.DataFrame({"Player Name": players, "Player href": players_href})
+df.to_csv("data/players_data.csv", index = False)
+print(df)
 
 # stall forever for us to see browser.
 input("Press Enter in the terminal to close the browser...")
