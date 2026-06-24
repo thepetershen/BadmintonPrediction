@@ -23,12 +23,13 @@ driver.get(url)
 time.sleep(3)
 
 # checks for if there are cookies that need to be declines
-try:
-  time.sleep(3)
-  decline_button = driver.find_element(By.ID, "cookiescript_reject")
-  decline_button.click()
-except Exception as e:
-  print ("no cookies")
+def cookie_check():
+  try:
+    time.sleep(3)
+    decline_button = driver.find_element(By.ID, "cookiescript_reject")
+    decline_button.click()
+  except Exception as e:
+    print ("no cookies")
 
 def get_page_players():
   # locates the elements that represent the rows of players (each being a plyer)
@@ -48,10 +49,13 @@ def get_page_players():
       print (raw_name)
 
     
-    except Exception as e:
-      print(f"Skipping row due to formatting issue: {e}")
+    except Exception:
+      print(f"Skipping row due to formatting issue")
       continue 
 
+cookie_check()
+
+# we loop for a certain amount to grab enough player names
 for i in range (0, 4):
    
   get_page_players()
