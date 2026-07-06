@@ -37,7 +37,6 @@ def cookie_check():
 def get_page_players(players_name, players_href):
   # locates the elements that represent the rows of players (each being a plyer)
   players = driver.find_elements(By.XPATH, '//tr')
-
   for player in players:
     try:
       # gets the embedded player name column
