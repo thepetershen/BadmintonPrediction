@@ -1,3 +1,4 @@
+
 import pandas as pd
 import json
 from curl_cffi import requests
@@ -39,9 +40,10 @@ weeks_2026 = [str(i) for i in range(1,21)] # since 2026 not over yet. we will us
 
 # this function takes in a player rank and then populates the dataframe of that players data from 2022 to 2026
 def get_player_rank(player_id):
-  existing_records = rank_df[rank_df['ID'] == player_id]
-  if len(existing_records) >= 225: # just a general check to see if player scrapped already 
-     print("player alrady exists")
+  # duplication check
+  existing_records = rank_df[rank_df['ID'] == int(player_id)]
+  if not existing_records.empty: # just a general check to see if player scrapped already 
+     print("player already exists")
      return
 
   params['playerId'] = player_id 
