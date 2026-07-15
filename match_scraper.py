@@ -8,6 +8,8 @@ from selenium.webdriver.common.action_chains import ActionChains # for weird clo
 
 import time
 
+import pandas as pd
+
 # br
 url = "https://bwfbadminton.com/calendar/"
 
@@ -27,14 +29,22 @@ def get_page_tournaments ():
   tournament_cards = driver.find_elements(By.XPATH, '//div[contains(@class, "tmt-card")]')
 
   for tournament_card in tournament_cards:
+   if tournament_card.is_displayed():       
+    link_element = tournament_card.find_element(By.XPATH, ".//a")
+    link_href = link_element.get_attribute('href')
     
-   if tournament_card.is_displayed():
-        
-        link_element = tournament_card.find_element(By.XPATH, ".//a")
-        link_href = link_element.get_attribute('href')
-        
-        print(link_href)
+    if not link_href in tournaments:
+      tournaments.append(link_href)
 
+def next_page():
+  time.sleep(3)
+
+  nav_bar = driver.find_element(By.XPATH, '//nav[@class="pagination"]')
+
+  next_page_btn = nav_bar.find_element(By.XPATH, './/a[i[contains(@class, "fa-chevron-right")]]')
+  driver.execute_script("arguments[0].click();", next_page_btn)
+
+  time.sleep(3)
 
 def cookie_check():
   try:
@@ -117,8 +127,18 @@ cookie_check()
 
 filter_page()
 
+# we will loop through all 12 pages, clicking next 11 times total
+
+for i in range (0, 11):
+  get_page_tournaments()
+
+  next_page()
+
 get_page_tournaments()
 
+df = pd.DataFrame({"tournamentLink": tournaments})
+df.to_csv("data/all_tournaments.csv", index = False)
+print(df)
 
 
 input("stall")

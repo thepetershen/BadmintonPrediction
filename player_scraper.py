@@ -59,6 +59,17 @@ def get_page_players(players_name, players_href):
       print(f"Skipping row due to formatting issue")
       continue 
 
+# go to the next page (couldn't figure out how to select a certain amount of things per page)
+def next_page():
+  time.sleep(3)
+
+  nav_bar = driver.find_element(By.XPATH, '//nav[@class="pagination"]')
+
+  next_page_btn = nav_bar.find_element(By.XPATH, './/a[i[contains(@class, "fa-chevron-right")]]')
+  driver.execute_script("arguments[0].click();", next_page_btn)
+
+  time.sleep(3)
+
 cookie_check()
 
 players= []
@@ -69,14 +80,7 @@ for i in range (0, 4):
    
   get_page_players(players, players_href)
 
-  time.sleep(3)
-
-  nav_bar = driver.find_element(By.XPATH, '//nav[@class="pagination"]')
-
-  next_page_btn = nav_bar.find_element(By.XPATH, './/a[i[contains(@class, "fa-chevron-right")]]')
-  driver.execute_script("arguments[0].click();", next_page_btn)
-
-  time.sleep(3)
+  next_page()
 
 driver.quit()
 print (len(players))
