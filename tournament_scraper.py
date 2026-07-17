@@ -23,6 +23,7 @@ time.sleep(3)
 
 # all tournaments
 tournaments = []
+tournaments_levels = []
 
 def get_page_tournaments ():
   
@@ -33,8 +34,18 @@ def get_page_tournaments ():
     link_element = tournament_card.find_element(By.XPATH, ".//a")
     link_href = link_element.get_attribute('href')
     
+    all_text = tournament_card.find_element(By.XPATH, './/div[@class="text-info"]')
+    tournament_level_prize = all_text.find_elements(By.XPATH, './/div[@class="labels"]')
+    tournament_level = tournament_level_prize[1].find_elements(By.XPATH, "./div")
+    tournament_level = tournament_level[0].text
+    tournament_level = tournament_level.split()
+    tournament_level = tournament_level[-1]
+
     if not link_href in tournaments:
       tournaments.append(link_href)
+      tournaments_levels.append(tournament_level)
+
+    
 
 def next_page():
   time.sleep(3)
@@ -136,7 +147,7 @@ for i in range (0, 11):
 
 get_page_tournaments()
 
-df = pd.DataFrame({"tournament link": tournaments})
+df = pd.DataFrame({"tournament link": tournaments, "tournament level": tournaments_levels})
 df.to_csv("data/all_tournaments.csv", index = False)
 print(df)
 
