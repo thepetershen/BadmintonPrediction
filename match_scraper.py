@@ -102,7 +102,7 @@ def scrape_tournament(link):
     # Give the matches time to load after clicking the tab
     time.sleep(5)
 
-    all_matches_screen = driver.find_elements(By.XPATH, '//div[contains(@class, "match-card")]')
+    all_matches_screen = driver.find_elements(By.XPATH, '//div[contains(@class, "match-card-wrapper")]')
 
     for cur_read_match in all_matches_screen:
       
@@ -117,8 +117,36 @@ def scrape_tournament(link):
       round_info = footer_items[1].text.strip() 
 
       #if we got here, we can create a match object
+      # first we need to scrape the names of each player (specifically their ids)
 
-      new_match = MatchRecord()
+      players_section = cur_read_match.find_element(By.XPATH, './/div[@class="participants-details-wrapper"]')
+      player_wrappers = players_section.find_elements(By.XPATH, './div')
+      player1_wrapper = player_wrappers[0]
+      player2_wrapper = player_wrappers[2]
+
+      player1_a_element = player1_wrapper.find_element(By.XPATH, ".//a")
+      player2_a_element = player2_wrapper.find_element(By.XPATH, ".//a")
+
+      player1_href = player1_a_element.get_attribute("href")
+      player2_href = player2_a_element.get_attribute("href")
+      player1_href_split = player1_href.split("/")
+      player2_href_split = player2_href.split("/")
+
+      player1_id = player1_href_split[4]
+      player2_id = player2_href_split[4]
+
+      # we will do a simple trick to find out the winner
+      winner_dots = player1_wrapper.find_elements(By.XPATH, './/div[contains(@class, "winner-dot")]')
+      winner = player2_id
+      if len(winner_dots) > 0:
+        winner = player1_id
+
+      print(winner)
+      print(player1_id)
+
+
+
+      
 
   return
 
