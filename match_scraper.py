@@ -24,9 +24,9 @@ class MatchRecord:
     g1_p1_score: int
     g1_p2_score: int
     
-    # Game 2
-    g2_p1_score: int
-    g2_p2_score: int
+    # Game 2 also optional in the case of retirement
+    g2_p1_score: Optional[int] = None
+    g2_p2_score: Optional[int] = None
     
     # Game 3 (Optional for straight-set matches)
     g3_p1_score: Optional[int] = None
@@ -66,7 +66,7 @@ def cookie_check():
     print ("no cookies")
 
 # takes in a given id and scrapes that tournament specifically. 
-def scrape_tournament(link):
+def scrape_tournament(link, level):
   driver.get(link)
   cookie_check()
   
@@ -141,16 +141,72 @@ def scrape_tournament(link):
       if len(winner_dots) > 0:
         winner = player1_id
 
-      print(winner)
-      print(player1_id)
+      # now we need to scrape the scores of the participants. 
 
+      score_section = cur_read_match.find_element(By.XPATH, './/div[@class="game-score-module-wrapper"]')
+      score_games = score_section.find_elements(By.XPATH, './div[@class="game-score-set"]')
 
+      if len(score_games) == 0:
+        continue # not sure why it would ever be empty
+      elif len (score_games) == 1:
+        game1 = score_games[0]
 
-      
+        game1_scores = game1.find_elements(By.XPATH, './span[contains(@class, "set-points")]')
+        game1_player1_score = game1_scores[0].text
+        game1_player2_score = game1_scores[1].text
+
+        new_match = MatchRecord(tournament_name=tournament_name, tournament_level=level, match_date=date_of_tournament, 
+                                round_name=round_info, player_1_id=player1_id, player_2_id=player2_id,
+                                winner_id=winner, g1_p1_score=game1_player1_score, g1_p2_score=game1_player2_score)
+        matches.append(new_match)
+      elif len(score_games) == 2:
+        game1 = score_games[0]
+        game2 = score_games[1]
+
+        game1_scores = game1.find_elements(By.XPATH, './span[contains(@class, "set-points")]')
+        game1_player1_score = game1_scores[0].text
+        game1_player2_score = game1_scores[1].text
+
+        game2_scores = game2.find_elements(By.XPATH, './span[contains(@class, "set-points")]')
+        game2_player1_score = game2_scores[0].text
+        game2_player2_score = game2_scores[1].text
+
+        new_match = MatchRecord(tournament_name=tournament_name, tournament_level=level, match_date=date_of_tournament, 
+                                        round_name=round_info, player_1_id=player1_id, player_2_id=player2_id,
+                                        winner_id=winner, g1_p1_score=game1_player1_score, g1_p2_score=game1_player2_score,
+                                        g2_p1_score=game2_player1_score, g2_p2_score= game2_player2_score)
+        matches.append(new_match)
+
+      elif len(score_games) == 3:
+        game1 = score_games[0]
+        game2 = score_games[1]
+        game3 = score_games[2]
+
+        game1_scores = game1.find_elements(By.XPATH, './span[contains(@class, "set-points")]')
+        game1_player1_score = game1_scores[0].text
+        game1_player2_score = game1_scores[1].text
+
+        game2_scores = game2.find_elements(By.XPATH, './span[contains(@class, "set-points")]')
+        game2_player1_score = game2_scores[0].text
+        game2_player2_score = game2_scores[1].text
+
+        game3_scores = game3.find_elements(By.XPATH, './span[contains(@class, "set-points")]')
+        game3_player1_score = game3_scores[0].text
+        game3_player2_score = game3_scores[1].text
+
+        new_match = MatchRecord(tournament_name=tournament_name, tournament_level=level, match_date=date_of_tournament, 
+                                                round_name=round_info, player_1_id=player1_id, player_2_id=player2_id,
+                                                winner_id=winner, g1_p1_score=game1_player1_score, g1_p2_score=game1_player2_score,
+                                                g2_p1_score=game2_player1_score, g2_p2_score= game2_player2_score,
+                                                g3_p1_score= game3_player1_score, g3_p2_score=game2_player2_score)
+        matches.append(new_match)
+      else:
+        continue
 
   return
 
-scrape_tournament("https://bwfworldtour.bwfbadminton.com/tournament/4426/yonex-sunrise-india-open-2022/results/")
+scrape_tournament("https://bwfworldtour.bwfbadminton.com/tournament/4426/yonex-sunrise-india-open-2022/results/", 300)
+print (len(matches))
 
 # for index, row in df.iterrows():
 #   player_link = row['tournamentLink']
