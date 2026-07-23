@@ -1,4 +1,5 @@
 import pandas as pd 
+from dataclasses import asdict
 import time
 
 from dataclasses import dataclass
@@ -7,6 +8,10 @@ from datetime import date
 
 import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
+
+import re
+import random
+import os
 
 # this defines a Match Record class which will be used as a template for adding a match
 @dataclass
@@ -54,8 +59,6 @@ driver = uc.Chrome(options=chrome_options, version_main=149)
 # get the already scraped list of all tournaments
 df = pd.read_csv('data/all_tournaments.csv')
 
-matches = []
-
 # cookie check
 def cookie_check():
   try:
@@ -65,8 +68,37 @@ def cookie_check():
   except Exception as e:
     print ("no cookies")
 
+# this function proccesses the name of a bwf tournament and returns importnat elements. 
+def clean_tournament_name(raw_name: str):
+    # 1. Convert to lowercase to locate the starting index of sponsor keywords
+    lower_name = raw_name.lower()
+    
+    # 2. Check for keywords and get the starting index
+    sponsor_index = -1
+    for keyword in ["presented by", "powered by"]:
+        idx = lower_name.find(keyword)
+        if idx != -1:
+            sponsor_index = idx
+            break
+            
+    # 3. Slice the string up to the sponsor index if found
+    if sponsor_index != -1:
+        raw_name = raw_name[:sponsor_index]
+
+    # 4. Find the 4-digit year from what's left
+    year_match = re.search(r'\b(19\d{2}|20\d{2})\b', raw_name)
+    clean_year = year_match.group(1) if year_match else ""
+
+    # 5. Remove the year from the string to isolate the tournament name
+    clean_name = re.sub(r'\b(19\d{2}|20\d{2})\b', '', raw_name)
+
+    # 6. Strip remaining double spaces and whitespace
+    clean_name = re.sub(r'\s+', ' ', clean_name).strip()
+
+    return clean_name, clean_year
+
 # takes in a given id and scrapes that tournament specifically. 
-def scrape_tournament(link, level):
+def scrape_tournament(link, level, matches):
   driver.get(link)
   cookie_check()
   
@@ -77,12 +109,23 @@ def scrape_tournament(link, level):
   tournament_name= tournament_information.find_element(By.XPATH, './h2').text
   tournament_date = tournament_information.find_element(By.XPATH, './div[@class="live-date"]').text
 
-  tournament_name_clean = tournament_name[:-5]
-  tournament_year_clean = tournament_name[-5:]
+  tournament_name_clean, tournament_year_clean = clean_tournament_name(tournament_name)
 
   tournament_date = tournament_date.split(" ")
+  start_day = int(tournament_date[0])
 
-  date_of_tournament = date(int(tournament_year_clean), month_to_num[str.lower(tournament_date[3])], int(tournament_date[0]))
+  # 2. Determine the start month based on the list length
+  if len(tournament_date) == 5:
+      start_month_str = tournament_date[1]
+  elif len(tournament_date) == 4:
+      start_month_str = tournament_date[3]
+  else:
+      start_month_str = tournament_date[1] 
+
+  start_month = month_to_num[start_month_str.lower()]
+
+  date_of_tournament = date(int(tournament_year_clean), start_month, start_day)
+
   print(tournament_name_clean)
   print(date_of_tournament)
 
@@ -114,7 +157,7 @@ def scrape_tournament(link, level):
       match_type = footer_items[0].text.strip() 
       if match_type != "MS":
         continue
-      round_info = footer_items[1].text.strip() 
+      round_info = footer_items[2].text.strip()
 
       #if we got here, we can create a match object
       # first we need to scrape the names of each player (specifically their ids)
@@ -147,6 +190,7 @@ def scrape_tournament(link, level):
       score_games = score_section.find_elements(By.XPATH, './div[@class="game-score-set"]')
 
       if len(score_games) == 0:
+        print ("Skipppped")
         continue # not sure why it would ever be empty
       elif len (score_games) == 1:
         game1 = score_games[0]
@@ -155,7 +199,7 @@ def scrape_tournament(link, level):
         game1_player1_score = game1_scores[0].text
         game1_player2_score = game1_scores[1].text
 
-        new_match = MatchRecord(tournament_name=tournament_name, tournament_level=level, match_date=date_of_tournament, 
+        new_match = MatchRecord(tournament_name=tournament_name_clean, tournament_level=level, match_date=date_of_tournament, 
                                 round_name=round_info, player_1_id=player1_id, player_2_id=player2_id,
                                 winner_id=winner, g1_p1_score=game1_player1_score, g1_p2_score=game1_player2_score)
         matches.append(new_match)
@@ -171,7 +215,7 @@ def scrape_tournament(link, level):
         game2_player1_score = game2_scores[0].text
         game2_player2_score = game2_scores[1].text
 
-        new_match = MatchRecord(tournament_name=tournament_name, tournament_level=level, match_date=date_of_tournament, 
+        new_match = MatchRecord(tournament_name=tournament_name_clean, tournament_level=level, match_date=date_of_tournament, 
                                         round_name=round_info, player_1_id=player1_id, player_2_id=player2_id,
                                         winner_id=winner, g1_p1_score=game1_player1_score, g1_p2_score=game1_player2_score,
                                         g2_p1_score=game2_player1_score, g2_p2_score= game2_player2_score)
@@ -194,23 +238,38 @@ def scrape_tournament(link, level):
         game3_player1_score = game3_scores[0].text
         game3_player2_score = game3_scores[1].text
 
-        new_match = MatchRecord(tournament_name=tournament_name, tournament_level=level, match_date=date_of_tournament, 
+        new_match = MatchRecord(tournament_name=tournament_name_clean, tournament_level=level, match_date=date_of_tournament, 
                                                 round_name=round_info, player_1_id=player1_id, player_2_id=player2_id,
                                                 winner_id=winner, g1_p1_score=game1_player1_score, g1_p2_score=game1_player2_score,
                                                 g2_p1_score=game2_player1_score, g2_p2_score= game2_player2_score,
-                                                g3_p1_score= game3_player1_score, g3_p2_score=game2_player2_score)
+                                                g3_p1_score= game3_player1_score, g3_p2_score=game3_player2_score)
         matches.append(new_match)
       else:
         continue
 
-  return
+  return tournament_name
 
-scrape_tournament("https://bwfworldtour.bwfbadminton.com/tournament/4426/yonex-sunrise-india-open-2022/results/", 300)
-print (len(matches))
+for index, row in df.iterrows():
+  tournament_link = row['tournament link']
+  tournament_level = row["tournament level"]
+  clean_name_from_link = tournament_link.split('/')[5]
+  tournament_path = "data/rawtournament/" + clean_name_from_link + "_matchdata.csv"
 
-# for index, row in df.iterrows():
-#   player_link = row['tournamentLink']
+  if os.path.exists(tournament_path):
+    print(f"File {tournament_path} already exists. Skipping...")
+    continue
 
-#   scrape_tournament(player_link)
+  matches = []
+  tournament_name = scrape_tournament(tournament_link, tournament_level, matches)
+  print(tournament_name)
+  
+  match_dicts = [asdict(match) for match in matches]
 
-#   time.sleep(20)
+  df_matches = pd.DataFrame(match_dicts) # directly convert dictionary to dataframe
+
+  df_matches.to_csv(tournament_path, index=False)
+  # random sleep. 
+  random_second = random.randint(10, 20)
+  time.sleep(random_second)
+
+  #create new blueprint, call it moving platform, add a static mesh, use the event tik from the event graph, add a varairable called distance in the variable lower left part, distance magnitude, speed var, 
