@@ -78,8 +78,6 @@ def get_player_rank(player_id):
           print("No ranking data found for this specific query. Skipping...")
           continue
 
-      json_data = response.json()
-
       player_data = json_data['data'][0]
 
       current_rank = player_data['rank']
