@@ -10,22 +10,8 @@ import time
 
 import pandas as pd
 
-# br
-url = "https://bwfbadminton.com/calendar/"
 
-# use the hidden chromebrower as to not get blocked. 
-chrome_options = uc.ChromeOptions()
-chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-driver = uc.Chrome(options=chrome_options, version_main=149)
-driver.get(url)
-
-time.sleep(3)
-
-# all tournaments
-tournaments = []
-tournaments_levels = []
-
-def get_page_tournaments ():
+def get_page_tournaments (driver, tournaments, tournaments_levels):
   
   tournament_cards = driver.find_elements(By.XPATH, '//div[contains(@class, "tmt-card")]')
 
@@ -47,7 +33,7 @@ def get_page_tournaments ():
 
     
 
-def next_page():
+def next_page(driver):
   time.sleep(3)
 
   nav_bar = driver.find_element(By.XPATH, '//nav[@class="pagination"]')
@@ -57,7 +43,7 @@ def next_page():
 
   time.sleep(3)
 
-def cookie_check():
+def cookie_check(driver):
   try:
     time.sleep(3)
     decline_button = driver.find_element(By.ID, "cookiescript_reject")
@@ -67,7 +53,7 @@ def cookie_check():
 
 
 # set the correct filters for the page (the right time period)
-def filter_page():
+def filter_page(driver):
 
   wait = WebDriverWait(driver, 10)
   
@@ -134,24 +120,39 @@ def filter_page():
 
 
 
-cookie_check()
+def scrape_tournaments():
+  url = "https://bwfbadminton.com/calendar/"
 
-filter_page()
+  # use the hidden chromebrower as to not get blocked. 
+  chrome_options = uc.ChromeOptions()
+  chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+  driver = uc.Chrome(options=chrome_options, version_main=149)
+  driver.get(url)
 
-# we will loop through all 12 pages, clicking next 11 times total
+  time.sleep(3)
 
-for i in range (0, 11):
-  get_page_tournaments()
-
-  next_page()
-
-get_page_tournaments()
-
-df = pd.DataFrame({"tournament link": tournaments, "tournament level": tournaments_levels})
-df.to_csv("data/all_tournaments.csv", index = False)
-print(df)
+  # all tournaments
+  tournaments = []
+  tournaments_levels = []
 
 
-input("stall")
+  cookie_check(driver)
 
-driver.quit()
+  filter_page(driver)
+
+  # we will loop through all 12 pages, clicking next 11 times total
+
+  for i in range (0, 11):
+    get_page_tournaments(driver, tournaments, tournaments_levels)
+
+    next_page(driver)
+
+  get_page_tournaments(driver, tournaments, tournaments_levels)
+
+  df = pd.DataFrame({"tournament link": tournaments, "tournament level": tournaments_levels})
+  df.to_csv("data/all_tournaments.csv", index = False)
+
+  driver.quit()
+
+if __name__ == "__main__":
+  scrape_tournaments()

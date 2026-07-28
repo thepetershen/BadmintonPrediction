@@ -2,8 +2,7 @@ import pandas as pd
 from dataclasses import asdict
 import time
 
-from dataclasses import dataclass
-from typing import Optional
+from src.match.models import MatchRecord
 from datetime import date
 
 import undetected_chromedriver as uc
@@ -13,54 +12,10 @@ import re
 import random
 import os
 
-# this defines a Match Record class which will be used as a template for adding a match
-@dataclass
-class MatchRecord:
-    tournament_name: str
-    tournament_level: int
-    match_date: date
-    round_name: str
-    
-    player_1_id: str
-    player_2_id: str
-    winner_id: str
-    
-    # Game 1
-    g1_p1_score: int
-    g1_p2_score: int
-    
-    # Game 2 also optional in the case of retirement
-    g2_p1_score: Optional[int] = None
-    g2_p2_score: Optional[int] = None
-    
-    # Game 3 (Optional for straight-set matches)
-    g3_p1_score: Optional[int] = None
-    g3_p2_score: Optional[int] = None
 
-month_to_num = {
-    "january": 1,
-    "february": 2,
-    "march": 3,
-    "april": 4,
-    "may": 5,
-    "june": 6,
-    "july": 7,
-    "august": 8,
-    "september": 9,
-    "october": 10,
-    "november": 11,
-    "december": 12
-}
-
-chrome_options = uc.ChromeOptions()
-chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-driver = uc.Chrome(options=chrome_options, version_main=149)
-
-# get the already scraped list of all tournaments
-df = pd.read_csv('data/all_tournaments.csv')
 
 # cookie check
-def cookie_check():
+def cookie_check(driver):
   try:
     time.sleep(8)
     decline_button = driver.find_element(By.ID, "cookiescript_reject")
@@ -98,9 +53,9 @@ def clean_tournament_name(raw_name: str):
     return clean_name, clean_year
 
 # takes in a given id and scrapes that tournament specifically. 
-def scrape_tournament(link, level, matches):
+def scrape_tournament(driver, link, level, matches, month_to_num):
   driver.get(link)
-  cookie_check()
+  cookie_check(driver)
   
   time.sleep(5) 
   
@@ -249,27 +204,51 @@ def scrape_tournament(link, level, matches):
 
   return tournament_name
 
-for index, row in df.iterrows():
-  tournament_link = row['tournament link']
-  tournament_level = row["tournament level"]
-  clean_name_from_link = tournament_link.split('/')[5]
-  tournament_path = "data/rawtournament/" + clean_name_from_link + "_matchdata.csv"
+def scrape_match():
+  month_to_num = {
+      "january": 1,
+      "february": 2,
+      "march": 3,
+      "april": 4,
+      "may": 5,
+      "june": 6,
+      "july": 7,
+      "august": 8,
+      "september": 9,
+      "october": 10,
+      "november": 11,
+      "december": 12
+  }
 
-  if os.path.exists(tournament_path):
-    print(f"File {tournament_path} already exists. Skipping...")
-    continue
+  chrome_options = uc.ChromeOptions()
+  chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+  driver = uc.Chrome(options=chrome_options, version_main=149)
 
-  matches = []
-  tournament_name = scrape_tournament(tournament_link, tournament_level, matches)
-  print(tournament_name)
-  
-  match_dicts = [asdict(match) for match in matches]
+  # get the already scraped list of all tournaments
+  df = pd.read_csv('data/all_tournaments.csv')
 
-  df_matches = pd.DataFrame(match_dicts) # directly convert dictionary to dataframe
+  for index, row in df.iterrows():
+    tournament_link = row['tournament link']
+    tournament_level = row["tournament level"]
+    clean_name_from_link = tournament_link.split('/')[5]
+    tournament_path = "data/rawtournament/" + clean_name_from_link + "_matchdata.csv"
 
-  df_matches.to_csv(tournament_path, index=False)
-  # random sleep. 
-  random_second = random.randint(10, 20)
-  time.sleep(random_second)
+    if os.path.exists(tournament_path):
+      print(f"File {tournament_path} already exists. Skipping...")
+      continue
 
-  #create new blueprint, call it moving platform, add a static mesh, use the event tik from the event graph, add a varairable called distance in the variable lower left part, distance magnitude, speed var, 
+    matches = []
+    tournament_name = scrape_tournament(driver, tournament_link, tournament_level, matches, month_to_num)
+    print(tournament_name)
+    
+    match_dicts = [asdict(match) for match in matches]
+
+    df_matches = pd.DataFrame(match_dicts) # directly convert dictionary to dataframe
+
+    df_matches.to_csv(tournament_path, index=False)
+    # random sleep. 
+    random_second = random.randint(10, 20)
+    time.sleep(random_second)
+
+if __name__ == "__main__":
+  scrape_match()
