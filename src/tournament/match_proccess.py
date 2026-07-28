@@ -7,6 +7,8 @@ from dataclasses import asdict
 import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
 from curl_cffi import requests
+from pandas.errors import EmptyDataError
+import os
 
 # we will aim to create 2 files. 1 where names are proccessed and one where they are not. (for publishing vs our use)
 # we will take use the player ids to perform looks of their name in df. If it doesn't exist, we will scrape it.
@@ -147,8 +149,15 @@ def get_rank(playerid, tournament_year, tournament_week):
   return cur_rank, highest_rank
 
 def reformat_tournament(file_path):
+  if not os.path.exists(file_path):
+    print(f"Skipping (File not found): {file_path}")
+    return  # Exits the function early, moving to the next file
 
-  df = pd.read_csv(file_path, parse_dates=['match_date'])
+  try:
+    df = pd.read_csv(file_path, parse_dates=['match_date'])
+  except EmptyDataError:
+    print(f"Skipping {file_path}: File is empty.")
+    return  # Or 'continue' if this is inside a loop of files
 
   tracked_year, tracked_week = 0, 0
   # we will track a dictionary of their ids to a tuple, being their ranks and highest rank
