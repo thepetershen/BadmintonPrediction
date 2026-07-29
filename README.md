@@ -2,12 +2,12 @@
 
 ## Description
 
-The purpose of this project is to scrape badminton information off the internet and create deep learning models to outperform humans at predicting the outcome of a match.
+The purpose of this project is to scrape badminton information off the internet in order to create deep learning models that outperform humans at predicting the outcome of a match.
 
 
 ## Overview / Motivation
 
-I believe that there is a gap in publicly availible data on badminton. Futhermore the best information one current could currently use to predict the outcome of a match is just a head to head of the two players. I care very much about this sport, so i wish to fill this knowledge gap. 
+I believe that there is a gap in publicly available badminton data. Furthermore, there is nothing except head to head information to predict the outcome of a match. This project aims to change both of those things. I am very passionate about the sport of badminton, so i wish this project can fill in this gap in information.
 
 ### Installation
 
