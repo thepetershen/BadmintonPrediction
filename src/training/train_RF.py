@@ -1,7 +1,10 @@
 
 import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.inspection import permutation_importance
 from sklearn.metrics import accuracy_score, classification_report
+from xgboost import XGBClassifier
 
 def split_data():
   df = pd.read_csv("data/all_match_id_proccessed.csv")
@@ -24,6 +27,7 @@ def prepare_data(train_df, val_df, test_df):
 
   columns_to_drop = ["tournament_name", "tournament_level", "match_date", "round_name", "player_1_id", "player_2_id", "winner_id",
                      "g1_p1_score", "g1_p2_score", "g2_p1_score", "g2_p2_score", "g3_p1_score", "g3_p2_score"]
+                
   target_col = "p1_won"
 
   def to_x_y(df):
@@ -47,12 +51,12 @@ def train(x_train, y_train, x_val, y_val, x_test, y_test):
   y_val_pred = rf_model.predict(x_val)
 
   accuracy = accuracy_score(y_val, y_val_pred)
-  print(f"Baseline Validation Accuracy: {accuracy * 100:.2f}%\n")
+  print(f"RF Accuracy: {accuracy * 100:.2f}%\n")
   print(classification_report(y_val, y_val_pred))
 
 
 
-def preprocess():
+def train_RF():
   train_df, val_df, test_df = split_data()
   x_train, y_train, x_val, y_val, x_test, y_test = prepare_data(train_df, val_df, test_df)
 
@@ -60,4 +64,4 @@ def preprocess():
 
 
 if __name__ == "__main__":
-  preprocess()
+  train_RF()
