@@ -33,7 +33,7 @@ def add_features():
     "highest_rank_diff": []
   }
 
-  for row, index in df.iterrows():
+  for index, row in df.iterrows():
     p1_id = row["player_1_id"]
     p2_id = row["player_2_id"]
     winner_id = row["winner_id"]
@@ -43,16 +43,34 @@ def add_features():
     p2_current_elo = player_elo.get(p2_id, 1500)
 
     rank_diff = row["player_1_rank"] - row["player_2_rank"]
-    highest_rank_diff = row["player_1_rank_highest"] - row["player_1_rank_highest"]
+    highest_rank_diff = row["player_1_rank_highest"] - row["player_2_rank_highest"]
 
     h2h = h2h_tracker.get((p1_id, p2_id), [0, 0])
+    total_h2h = h2h[0] + h2h[1]
+    h2h_win_rate = h2h[0] / total_h2h if total_h2h > 0 else 0.5
+
+    new_features["p1_elo_pre_match"].append(p1_current_elo)
+    new_features["p2_elo_pre_match"].append(p2_current_elo)
+    new_features["h2h_win_rate"].append(h2h_win_rate)
+    new_features["rank_diff"].append(rank_diff)
+    new_features["highest_rank_diff"].append(highest_rank_diff)
+
     if (winner_id == p2_id):
       h2h[1] += 1
     else:
       h2h[0] += 1
+    h2h_tracker[(p1_id, p2_id)] = h2h
 
-    
-    
+    new_p1_elo, new_p2_elo = update_elo(p1_current_elo, p2_current_elo, 1 if winner_id == p1_id else 2)
+    player_elo[p1_id] = new_p1_elo
+    player_elo[p2_id] = new_p2_elo
 
+  for col_name, col_data in new_features.items():
+    df[col_name] = col_data
 
+  df.to_csv("data/all_match_id_proccessed.csv", index=False)
 
+  return df
+
+if __name__ == "__main__":
+  add_features()
