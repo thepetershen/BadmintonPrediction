@@ -6,20 +6,9 @@ import torch.nn.functional as F
 from torch_geometric.nn import GATConv
 from torch_geometric.data import Data
 from sklearn.metrics import accuracy_score, classification_report
+import joblib
 
-# ---------------------------------------------------------------------------
-# Framing: this is NOT link-existence prediction (we already know the match
-# is happening). It's edge-outcome prediction: an encoder GNN computes node
-# (player) embeddings from the historical win/loss graph, and a decoder MLP
-# turns a (player_1, player_2) embedding pair into P(player_1 wins).
-#
-# Directed edges run loser -> winner. In PyG, message passing flows source
-# to destination, so an edge loser->winner pushes the loser's embedding into
-# the winner's aggregation. That's what makes "A beat B, B beat C" chains
-# work: after one GNN layer, B's embedding already reflects C (via B's own
-# loser->B edges); a second layer lets A pick that up transitively through
-# its B->A edge, since A's embedding aggregates from everyone A has beaten.
-# ---------------------------------------------------------------------------
+# this model was created by an llm as a test a GNN model. 
 
 DATA_PATH = "data/all_match_id_proccessed.csv"
 VAL_START = pd.Timestamp("2025-08-01")
@@ -47,8 +36,6 @@ def load_matches():
 
 
 def build_player_feature_timeline(df):
-  """Long-format (player_id, match_date, elo, point_elo, rank) per appearance.
-  Used for as-of lookups when building each snapshot's node features."""
   p1_rows = df[["match_date", "player_1_id"] + P1_NODE_COLS].rename(
     columns={"player_1_id": "player_id", **dict(zip(P1_NODE_COLS, NODE_FEATURE_NAMES))})
   p2_rows = df[["match_date", "player_2_id"] + P2_NODE_COLS].rename(
@@ -58,8 +45,8 @@ def build_player_feature_timeline(df):
 
 
 def snapshot_node_features(timeline, all_player_ids, cutoff_date):
-  """Each player's most recent known feature row strictly before cutoff_date.
-  Players with no prior match get a neutral default (unrated) row."""
+  #Each player's most recent known feature row strictly before cutoff_date.
+  #Players with no prior match get a neutral default (unrated) row.
   past = timeline[timeline["match_date"] < cutoff_date]
   default = np.array([1500.0, 1500.0, past["rank"].max() if len(past) else 300.0])
 
@@ -225,6 +212,8 @@ def train_gnn(epochs=30, hidden_channels=32, num_layers=2, lr=1e-3, weight_decay
   _, val_acc, val_preds, val_ys = run_epoch(model, val_snapshots, optimizer=None, loss_fn=loss_fn)
   print(f"\nFinal GNN Validation Accuracy: {val_acc * 100:.2f}%\n")
   print(classification_report(val_ys, val_preds))
+
+  joblib.dump(model, 'data/models/gnn_badminton_model.joblib')
 
   return model
 

@@ -5,6 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.inspection import permutation_importance
 from sklearn.metrics import accuracy_score, classification_report
 from xgboost import XGBClassifier
+import joblib
 
 def split_data():
   df = pd.read_csv("data/all_match_id_proccessed.csv")
@@ -71,7 +72,7 @@ def train_xgb(x_train, y_train, x_val, y_val, x_test, y_test):
 
   print(f"Best iteration: {xgb_model.best_iteration} (of {xgb_model.get_params()['n_estimators']} max)\n")
 
-  # predict() automatically uses the best iteration found via early stopping
+  # predict() uses auto stopping 
   y_val_pred = xgb_model.predict(x_val)
 
   accuracy = accuracy_score(y_val, y_val_pred)
@@ -82,8 +83,6 @@ def train_xgb(x_train, y_train, x_val, y_val, x_test, y_test):
   print("Feature importances (split-based):")
   print(importances)
 
-  # split-based importance is distorted by correlated features; permutation importance
-  # (measured on held-out validation data) reflects actual predictive contribution instead
   perm_result = permutation_importance(xgb_model, x_val, y_val, n_repeats=30, random_state=42, n_jobs=-1)
   perm_importances = pd.Series(perm_result.importances_mean, index=x_val.columns).sort_values(ascending=False)
   print("\nFeature importances (permutation, on validation set):")
@@ -95,8 +94,14 @@ def preprocess():
   train_df, val_df, test_df = split_data()
   x_train, y_train, x_val, y_val, x_test, y_test = prepare_data(train_df, val_df, test_df)
 
-  train_xgb(x_train, y_train, x_val, y_val, x_test, y_test)
+  return x_train, y_train, x_val, y_val, x_test, y_test
 
+def train():
+  x_train, y_train, x_val, y_val, x_test, y_test = preprocess()
+
+  model = train_xgb(x_train, y_train, x_val, y_val, x_test, y_test)
+
+  joblib.dump(model, 'data/models/xgb_badminton_model.joblib')
 
 if __name__ == "__main__":
-  preprocess()
+  train()

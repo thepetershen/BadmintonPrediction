@@ -1,4 +1,5 @@
 import pandas as pd
+import json 
 
 # the goal of this file is to process the the file to add extra features name rank diff, head to head, and an elo calculation in order to
 # add features into tabular ML model
@@ -36,7 +37,7 @@ def add_features():
   # we will assume the df is sorted by date already (it should be as we aded in order)
   player_elo = {}       # player_id -> current Elo rating
   player_point_elo = {} # player_id -> current point-share Elo rating
-  h2h_tracker = {}      # (player_1_id, player_2_id) -> [p1_wins, p2_wins]
+  h2h_tracker = {}      # sorted (id_a, id_b) -> {player_id: wins}, order-independent
 
   h2h_correct = 0   # predictions made using prior h2h record that were right
   h2h_total = 0      # matches where the two players had a prior head-to-head record
@@ -65,12 +66,15 @@ def add_features():
     rank_diff = row["player_1_rank"] - row["player_2_rank"]
     highest_rank_diff = row["player_1_rank_highest"] - row["player_2_rank_highest"]
 
-    h2h = h2h_tracker.get((p1_id, p2_id), [0, 0])
-    total_h2h = h2h[0] + h2h[1]
-    h2h_win_rate = h2h[0] / total_h2h if total_h2h > 0 else 0.5
+    h2h_key = tuple(sorted((p1_id, p2_id)))
+    h2h = h2h_tracker.get(h2h_key, {})
+    p1_h2h_wins = h2h.get(p1_id, 0)
+    p2_h2h_wins = h2h.get(p2_id, 0)
+    total_h2h = p1_h2h_wins + p2_h2h_wins
+    h2h_win_rate = p1_h2h_wins / total_h2h if total_h2h > 0 else 0.5
 
-    if h2h[0] != h2h[1]:
-      h2h_prediction = p1_id if h2h[0] > h2h[1] else p2_id
+    if p1_h2h_wins != p2_h2h_wins:
+      h2h_prediction = p1_id if p1_h2h_wins > p2_h2h_wins else p2_id
       h2h_total += 1
       if h2h_prediction == winner_id:
         h2h_correct += 1
@@ -83,11 +87,8 @@ def add_features():
     new_features["rank_diff"].append(rank_diff)
     new_features["highest_rank_diff"].append(highest_rank_diff)
 
-    if (winner_id == p2_id):
-      h2h[1] += 1
-    else:
-      h2h[0] += 1
-    h2h_tracker[(p1_id, p2_id)] = h2h
+    h2h[winner_id] = h2h.get(winner_id, 0) + 1
+    h2h_tracker[h2h_key] = h2h
 
     new_p1_elo, new_p2_elo = update_elo(p1_current_elo, p2_current_elo, 1.0 if winner_id == p1_id else 0.0)
     player_elo[p1_id] = new_p1_elo
@@ -108,6 +109,13 @@ def add_features():
   print(f"Head-to-head baseline accuracy: {h2h_accuracy * 100:.2f}% ({h2h_correct}/{h2h_total} matches with a prior h2h record)")
 
   df.to_csv("data/all_match_id_proccessed.csv", index=False)
+
+  serializable_h2h = {
+    f"{a}_{b}": {str(pid): wins for pid, wins in record.items()}
+    for (a, b), record in h2h_tracker.items()
+  }
+  with open('data/h2h.json', 'w') as f:
+    json.dump(serializable_h2h, f, indent=4)
 
   return df
 

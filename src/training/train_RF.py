@@ -2,9 +2,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.inspection import permutation_importance
 from sklearn.metrics import accuracy_score, classification_report
-from xgboost import XGBClassifier
+import joblib
 
 def split_data():
   df = pd.read_csv("data/all_match_id_proccessed.csv")
@@ -54,13 +53,17 @@ def train(x_train, y_train, x_val, y_val, x_test, y_test):
   print(f"RF Accuracy: {accuracy * 100:.2f}%\n")
   print(classification_report(y_val, y_val_pred))
 
+  return rf_model
+
 
 
 def train_RF():
   train_df, val_df, test_df = split_data()
   x_train, y_train, x_val, y_val, x_test, y_test = prepare_data(train_df, val_df, test_df)
 
-  train(x_train, y_train, x_val, y_val, x_test, y_test)
+  rf_model = train(x_train, y_train, x_val, y_val, x_test, y_test)
+
+  joblib.dump(rf_model, 'data/models/rf_badminton_model.joblib')
 
 
 if __name__ == "__main__":
