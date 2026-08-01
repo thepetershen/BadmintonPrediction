@@ -1,6 +1,9 @@
 import joblib
 import json
 from fastapi import FastAPI
+from src.match.match_proccess import get_rank
+from datetime import date
+import pandas as pd
 
 app = FastAPI()
 # this is the best model we have trained in terms of testing accuracy
@@ -17,10 +20,75 @@ with open('data/name_to_id.json', 'r') as f:
 with open('data/h2h.json', 'r') as f:
   h2h = {str(k): v for k, v in json.load(f).items()}
 
+# headers for getting ranks
+headers = {
+  'accept': 'application/json, text/plain, */*',
+  'accept-language': 'en-US,en;q=0.9',
+  'origin': 'https://bwfbadminton.com',
+  'priority': 'u=1, i',
+  'referer': 'https://bwfbadminton.com/',
+  'sec-ch-ua': '"Chromium";v="148", "Google Chrome";v="148", "Not/A)Brand";v="99"',
+  'sec-ch-ua-mobile': '?0',
+  'sec-ch-ua-platform': '"macOS"',
+  'sec-fetch-dest': 'empty',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-site': 'same-site',
+  'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36',
+}
 
-@app.get("/predict/matchup/{player1_id}/{player2_id}")
-def predict_match(player1_id: int, player2_id: int):
-    
-  return {"player1_id": player1_id, "player2_id": player2_id, "prediction": ...}
+params = {
+  'playerId': '57945',
+  'rankingId': '2',
+  'rankingCategoryId': '6',
+  'year': '2024',
+  'week': '2',
+}
+
+@app.get("/predict/matchup/{player1_name}/{player2_name}")
+def predict_match(player1_name: str, player2_name: str):
+
+  player1_id = name_to_id[player1_name]
+  player2_id = name_to_id[player2_name]
+
+  h2h_tuple = tuple(sorted((player1_id, player2_id)))
+  h2h_key = h2h_tuple[0] + "_" + h2h_tuple[1]
+  h2h_row = h2h.get(h2h_key)
+
+  if (h2h_row == None):
+    h2h_win_rate = 0.5
+  else:
+    player1_win = h2h_row.get(player1_id)
+    player2_win = h2h_row.get(player2_id)
+    total_win = player1_win + player2_win
+    h2h_win_rate = player1_win / total_win
+
+  today = date.today()
+  #allow for a 2 week drag (it could be the case that)
+  week_number = today.isocalendar()[1] - 2 if today.isocalendar()[1] >= 2 else 0
+  year = today.isocalendar().year
+
+
+  #when a player enters name, we will just assume its the lastest
+  player1_rank, player1_highest_rank = get_rank(player1_id, year, week_number, params=params, headers=headers)
+  player2_rank, player2_highest_rank = get_rank(player2_id, year, week_number, params=params, headers=headers)
+
+  rank_diff = int(player1_rank) - int(player2_rank)
+  rank_highest_diff = int(player1_highest_rank) - int(player2_highest_rank)
+
+  X = pd.DataFrame([{
+    "h2h_win_rate": h2h_win_rate,
+    "rank_diff": rank_diff,
+    "highest_rank_diff": rank_highest_diff,
+  }])
+  print (player1_rank)
+  print(player2_rank)
+  print (rank_diff)
+  print(h2h_win_rate)
+  pred = model.predict(X)          # 0 or 1 -> predicts p1_won (1 = player1 wins)
+  proba = model.predict_proba(X)   # [[P(p2 wins), P(p1 wins)]]
+  p1_win_prob = float(proba[0][1])
+
+  # we simply return the probability player 1 wins
+  return {"player1_name": player1_name, "player2_name": player2_name, "prediction": p1_win_prob }
 
 

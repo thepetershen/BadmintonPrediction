@@ -17,7 +17,7 @@ for index in range(0, len(df_name)):
   id2 = df_id_row["player_2_id"]
 
   name_to_id[name1] = str(id1)
-  name_to_id[name1] = str(id2)
+  name_to_id[name2] = str(id2)
 
 with open('data/name_to_id.json', 'w') as f:
     json.dump(name_to_id, f, indent=4)
