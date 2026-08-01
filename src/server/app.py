@@ -1,6 +1,6 @@
 import joblib
 import json
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from src.match.match_proccess import get_rank
 from datetime import date
 import pandas as pd
@@ -47,8 +47,11 @@ params = {
 @app.get("/predict/matchup/{player1_name}/{player2_name}")
 def predict_match(player1_name: str, player2_name: str):
 
-  player1_id = name_to_id[player1_name]
-  player2_id = name_to_id[player2_name]
+  player1_id = name_to_id.get(player1_name)
+  player2_id = name_to_id.get(player2_name)
+
+  if player1_id is None or player2_id is None:
+    raise HTTPException(status_code=404, detail="Could not find one or both players")
 
   h2h_tuple = tuple(sorted((player1_id, player2_id)))
   h2h_key = h2h_tuple[0] + "_" + h2h_tuple[1]
@@ -71,6 +74,13 @@ def predict_match(player1_name: str, player2_name: str):
   #when a player enters name, we will just assume its the lastest
   player1_rank, player1_highest_rank = get_rank(player1_id, year, week_number, params=params, headers=headers)
   player2_rank, player2_highest_rank = get_rank(player2_id, year, week_number, params=params, headers=headers)
+
+  # if a player has no current ranking data, assume they're bad and fall back to a worst-case rank
+  UNRANKED_FALLBACK = 300
+  player1_rank = player1_rank if player1_rank is not None else UNRANKED_FALLBACK
+  player1_highest_rank = player1_highest_rank if player1_highest_rank is not None else UNRANKED_FALLBACK
+  player2_rank = player2_rank if player2_rank is not None else UNRANKED_FALLBACK
+  player2_highest_rank = player2_highest_rank if player2_highest_rank is not None else UNRANKED_FALLBACK
 
   rank_diff = int(player1_rank) - int(player2_rank)
   rank_highest_diff = int(player1_highest_rank) - int(player2_highest_rank)
