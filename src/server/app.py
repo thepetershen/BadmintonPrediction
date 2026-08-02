@@ -1,11 +1,18 @@
 import joblib
 import json
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from src.match.match_proccess import get_rank
 from datetime import date
 import pandas as pd
 
 app = FastAPI()
+app.add_middleware(
+  CORSMiddleware,
+  allow_origins=["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:5173"],
+  allow_methods=["*"],
+  allow_headers=["*"],
+)
 # this is the best model we have trained in terms of testing accuracy
 model = joblib.load('data/models/xgb_badminton_model.joblib')
 
@@ -43,6 +50,10 @@ params = {
   'year': '2024',
   'week': '2',
 }
+
+@app.get("/players")
+def list_players():
+  return {"players": sorted(name_to_id.keys(), key=str.casefold)}
 
 @app.get("/predict/matchup/{player1_name}/{player2_name}")
 def predict_match(player1_name: str, player2_name: str):
