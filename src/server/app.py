@@ -53,7 +53,11 @@ params = {
 
 @app.get("/players")
 def list_players():
-  return {"players": sorted(name_to_id.keys(), key=str.casefold)}
+  player_list = []
+  for key, value in name_to_id.items():
+    player_list.append(key)
+  player_list.sort()
+  return player_list
 
 @app.get("/predict/matchup/{player1_name}/{player2_name}")
 def predict_match(player1_name: str, player2_name: str):
