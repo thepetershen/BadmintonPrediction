@@ -115,19 +115,16 @@ def reformat_tournament(driver, file_path, id_to_name, all_matches, all_matches_
     else:
       winner_name = full_name_2
 
-    # if we are still on the current week of the tournament
+    # if we are still on the current week of the tournament look through the cache to see if we already have the ranking
     if tournament_week == tracked_week and tournament_year == tracked_year:
       player_1_cur_rank, player_1_highest_rank = rankings.get(player_id_1, (None, None))
       player_2_cur_rank, player_2_highest_rank = rankings.get(player_id_2, (None, None))
-
       if player_1_cur_rank is None or player_1_highest_rank is None:
           player_1_cur_rank, player_1_highest_rank = get_rank(player_id_1, tournament_year, tournament_week, params, headers)
           rankings[player_id_1] = (player_1_cur_rank, player_1_highest_rank)
-
       if player_2_cur_rank is None or player_2_highest_rank is None:
           player_2_cur_rank, player_2_highest_rank = get_rank(player_id_2, tournament_year, tournament_week, params, headers)
           rankings[player_id_2] = (player_2_cur_rank, player_2_highest_rank)
-
     else:
       # else reset all the data we have
       rankings = {}

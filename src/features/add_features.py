@@ -8,16 +8,13 @@ import json
 # the h2h will only be calculated with the data we have. 
 
 # takes in the elos and player 1's score for the match (1 for a win, 0 for a loss,
-# or a continuous value like point share for a margin-based elo), returns the new elos
+# or a continuous value), returns the new elos
 def update_elo(elo_1, elo_2, score_1, k=32):
     expected_1 = 1 / (1 + 10 ** ((elo_2 - elo_1) / 400))
     expected_2 = 1 - expected_1  # expected_2 is simply the inverse of expected_1
-
     score_2 = 1 - score_1
-
     new_elo_1 = elo_1 + (k * (score_1 - expected_1))
     new_elo_2 = elo_2 + (k * (score_2 - expected_2))
-
     return new_elo_1, new_elo_2
 
 # sums the points won by each player across all games played in the match
