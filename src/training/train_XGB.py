@@ -22,9 +22,23 @@ def split_data():
   print(len(train_df), len(val_df), len(test_df))
 
   return train_df, val_df, test_df
+
+def mirror_x_y(x, y):
+  # order-swapped counterpart of each row. negating each element so there is no error for flips. 
+  # this method simply mirrors the data and adds it to training.
+  x_mirror = x.copy()
+  x_mirror["rank_diff"] = -x_mirror["rank_diff"]
+  x_mirror["highest_rank_diff"] = -x_mirror["highest_rank_diff"]
+  x_mirror["h2h_win_rate"] = 1 - x_mirror["h2h_win_rate"]
+  y_mirror = 1 - y
+
+  x_aug = pd.concat([x, x_mirror], ignore_index=True)
+  y_aug = pd.concat([y, y_mirror], ignore_index=True)
+  return x_aug, y_aug
+
 # this function will do things like dropping all the features that can't be and shouldn't be put into a random forest 
 # model and will make it into x train y trian and other forms of data that can be fed direclty into the model
-def prepare_data(train_df, val_df, test_df):
+def prepare_data(train_df, val_df, test_df, augment=True):
 
   columns_to_drop = ["tournament_name", "tournament_level", "match_date", "round_name", "player_1_id", "player_2_id", "winner_id",
                      "g1_p1_score", "g1_p2_score", "g2_p1_score", "g2_p2_score", "g3_p1_score", "g3_p2_score",
@@ -39,6 +53,8 @@ def prepare_data(train_df, val_df, test_df):
     df = df.dropna()
     x = df.drop(columns=[target_col])
     y = df[target_col]
+    if augment:
+      x, y = mirror_x_y(x, y)
     return x, y
 
   x_train, y_train = to_x_y(train_df)

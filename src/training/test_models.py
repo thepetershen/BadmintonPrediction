@@ -1,10 +1,13 @@
+import sys
+
 import joblib
+import numpy as np
 import torch.nn as nn
 from sklearn.metrics import accuracy_score, classification_report
 
 from src.training.train_RF import split_data as rf_split_data, prepare_data as rf_prepare_data
 from src.training.train_XGB import split_data as xgb_split_data, prepare_data as xgb_prepare_data
-from src.training.train_GNN import load_matches, build_snapshots, run_epoch, TEST_START, MatchGNN  # noqa: F401 (MatchGNN needed to unpickle)
+from src.training.train_GNN import load_matches, build_snapshots, run_epoch, TEST_START, MatchGNN
 
 RF_MODEL_PATH = "data/models/rf_badminton_model.joblib"
 XGB_MODEL_PATH = "data/models/xgb_badminton_model.joblib"
@@ -23,19 +26,20 @@ def test_rf():
   return acc
 
 
-def test_xgb():
+def test_xgb(augment=True):
   model = joblib.load(XGB_MODEL_PATH)
   train_df, val_df, test_df = xgb_split_data()
-  _, _, _, _, x_test, y_test = xgb_prepare_data(train_df, val_df, test_df)
+  _, _, _, _, x_test, y_test = xgb_prepare_data(train_df, val_df, test_df, augment=augment)
 
   preds = model.predict(x_test)
   acc = accuracy_score(y_test, preds)
-  print(f"XGBoost Test Accuracy: {acc * 100:.2f}%\n")
+  print(f"XGBoost Test Accuracy (augment={augment}): {acc * 100:.2f}%\n")
   print(classification_report(y_test, preds))
   return acc
 
 
 def test_gnn():
+  sys.modules["__main__"].MatchGNN = MatchGNN
   model = joblib.load(GNN_MODEL_PATH)
   df = load_matches()
   snapshots, _ = build_snapshots(df)

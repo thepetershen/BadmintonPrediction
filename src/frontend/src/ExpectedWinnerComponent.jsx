@@ -16,6 +16,7 @@ function ExpectedWinnerComponent({ winnerInfo }) {
   } else if (player1_name === "" || player2_name === "") {
     return null;
   } else {
+    console.log(winnerInfo)
     const player1WinPercent = prediction * 100;
     const winnerIsPlayer1 = prediction >= 0.5;
     const winnerName = winnerIsPlayer1 ? player1_name : player2_name;

@@ -100,14 +100,25 @@ def predict_match(player1_name: str, player2_name: str):
   rank_diff = int(player1_rank) - int(player2_rank)
   rank_highest_diff = int(player1_highest_rank) - int(player2_highest_rank)
 
-  X = pd.DataFrame([{
-    "h2h_win_rate": h2h_win_rate,
-    "rank_diff": rank_diff,
-    "highest_rank_diff": rank_highest_diff,
-  }])
-  pred = model.predict(X)          # 0 or 1 -> predicts p1_won (1 = player1 wins)
-  proba = model.predict_proba(X)   # [[P(p2 wins), P(p1 wins)]]
-  p1_win_prob = float(proba[0][1])
+  # the model has no structural guarantee that f(-x) == 1 - f(x), so predicting player1
+  # vs player2 could disagree with predicting player2 vs player1. we score by making it symmetric by adding the inverse. 
+  X = pd.DataFrame([
+    {
+      "h2h_win_rate": h2h_win_rate,
+      "rank_diff": rank_diff,
+      "highest_rank_diff": rank_highest_diff,
+    },
+    {
+      "h2h_win_rate": 1 - h2h_win_rate,
+      "rank_diff": -rank_diff,
+      "highest_rank_diff": -rank_highest_diff,
+    },
+  ])
+  proba = model.predict_proba(X)   # row 0 = forward (p1,p2), row 1 = reversed (p2,p1)
+  forward_p1_win_prob = float(proba[0][1])
+  reversed_p1_win_prob = float(proba[1][1])
+
+  p1_win_prob = 0.5 + (forward_p1_win_prob - reversed_p1_win_prob) / 2
 
   # we simply return the probability player 1 wins
   return {"player1_name": player1_name, "player2_name": player2_name, "prediction": p1_win_prob }
