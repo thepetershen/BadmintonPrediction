@@ -5,7 +5,7 @@ const SERVER_API_URL = import.meta.env.VITE_API_URL
 
 // the search componenet will contain 3 components. the two players, each with searchable fields
 // and the submit bar. 
-function SearchComponent() {
+function SearchComponent({ setWinnerInfo }) {
   // keeps track of the names of the two players
   const [player1Name, setPlayer1Name] = useState(0);
   const [player2Name, setPlayer2Name] = useState(0);
@@ -15,7 +15,7 @@ function SearchComponent() {
   useEffect(() => { 
     const fetchUsers = async () => {
       try {
-        const response = await fetch(SERVER_API_URL + "/players");
+        const response = await fetch(SERVER_API_URL + "players");
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -24,14 +24,26 @@ function SearchComponent() {
         const data = await response.json();
         setPlayerList(data);
       } catch (err) {
-        setError(err.message);
+        setError("Failed to load list of players");
       }
     }
     fetchUsers();
   }, []);
 
-  const handleClick = () => {
-    alert('Button was clicked!');
+  const handleClick = async () => {
+    try {
+      const response = await fetch(SERVER_API_URL + "predict/matchup/" + player1Name + "/" + player2Name)
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setWinnerInfo(data);
+
+    } catch (err) {
+      setError("Failed to send list of players");
+    }
   };
 
   return (
