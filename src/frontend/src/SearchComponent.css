@@ -1,0 +1,25 @@
+.search-component {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  width: fit-content;
+  padding: 24px 48px;
+  background: #ffffff;
+  border: 4px solid #000000;
+}
+
+.search-submit {
+  box-sizing: border-box;
+  padding: 0 32px;
+  background: #8b0000;
+  color: #ffffff;
+  border: none;
+  border-radius: 0;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.search-submit:hover {
+  background: #6e0000;
+}

@@ -105,10 +105,6 @@ def predict_match(player1_name: str, player2_name: str):
     "rank_diff": rank_diff,
     "highest_rank_diff": rank_highest_diff,
   }])
-  print (player1_rank)
-  print(player2_rank)
-  print (rank_diff)
-  print(h2h_win_rate)
   pred = model.predict(X)          # 0 or 1 -> predicts p1_won (1 = player1 wins)
   proba = model.predict_proba(X)   # [[P(p2 wins), P(p1 wins)]]
   p1_win_prob = float(proba[0][1])

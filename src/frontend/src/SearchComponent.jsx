@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react'
 import PlayerDropdownComponent from './PlayerDropdownComponent.jsx';
+import './SearchComponent.css'
 const SERVER_API_URL = import.meta.env.VITE_API_URL
 
 // the search componenet will contain 3 components. the two players, each with searchable fields
@@ -42,26 +43,26 @@ function SearchComponent({ setWinnerInfo }) {
       setWinnerInfo(data);
 
     } catch (err) {
-      setError("Failed to send list of players");
+      setWinnerInfo({"player1_name": "Error", "player2_name": "Error", "prediction": 0 });
     }
   };
 
   return (
-    <>
-      <PlayerDropdownComponent 
+    <div className="search-component">
+      <PlayerDropdownComponent
         players = {playerList}
         player = {player1Name}
         setPlayer = {setPlayer1Name}
       />
-      <PlayerDropdownComponent 
+      <PlayerDropdownComponent
         players = {playerList}
         player = {player2Name}
         setPlayer = {setPlayer2Name}
       />
-      <button type="button" onClick={handleClick}>
+      <button type="button" className="search-submit" onClick={handleClick}>
         Submit
       </button>
-    </>
+    </div>
   )
 }
 
