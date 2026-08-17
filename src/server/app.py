@@ -2,14 +2,25 @@ import joblib
 import json
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from src.match.match_proccess import get_rank
 from datetime import date
 import pandas as pd
+from src.match.rank_lookup import get_rank
+import os
 
 app = FastAPI()
+
+# set some default allowed originings
+_DEFAULT_ORIGINS = "http://localhost:3000,http://localhost:5173,http://127.0.0.1:5173"
+
+allowed_origins = [
+  origin.strip()
+  for origin in os.environ.get("ALLOWED_ORIGINS", _DEFAULT_ORIGINS).split(",")
+  if origin.strip()
+]
+
 app.add_middleware(
   CORSMiddleware,
-  allow_origins=["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:5173"],
+  allow_origins=allowed_origins,
   allow_methods=["*"],
   allow_headers=["*"],
 )
