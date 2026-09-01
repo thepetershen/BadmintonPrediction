@@ -5,12 +5,11 @@ from src.features.add_features import add_features
 from src.training.train_RF import train_RF
 from src.training.train_XGB import train
 from src.training.train_GNN import train_gnn
-from src.training.test_models import test_all, test_xgb_symmetry
 
 if __name__ == "__main__":
     # scrape_tournaments()
     # scrape_match()
-    # process_matches()
+    process_matches()
 
     # add_features()
 
@@ -18,5 +17,5 @@ if __name__ == "__main__":
     # train()
     # train_gnn()
 
-    test_all()
-    test_xgb_symmetry()
+    # test_all()
+    # test_xgb_symmetry()

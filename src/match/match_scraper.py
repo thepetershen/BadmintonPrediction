@@ -110,7 +110,7 @@ def scrape_tournament(driver, link, level, matches, month_to_num):
 
       # understand the type of match, for our use case we are only scarping MS
       match_type = footer_items[0].text.strip() 
-      if match_type != "MS":
+      if match_type != "MS" and match_type != "WS":
         continue
       round_info = footer_items[2].text.strip()
 
@@ -154,8 +154,8 @@ def scrape_tournament(driver, link, level, matches, month_to_num):
         game1_player1_score = game1_scores[0].text
         game1_player2_score = game1_scores[1].text
 
-        new_match = MatchRecord(tournament_name=tournament_name_clean, tournament_level=level, match_date=date_of_tournament, 
-                                round_name=round_info, player_1_id=player1_id, player_2_id=player2_id,
+        new_match = MatchRecord(tournament_name=tournament_name_clean, tournament_level=level, match_date=date_of_tournament,
+                                round_name=round_info, match_category=match_type, player_1_id=player1_id, player_2_id=player2_id,
                                 winner_id=winner, g1_p1_score=game1_player1_score, g1_p2_score=game1_player2_score)
         matches.append(new_match)
       elif len(score_games) == 2:
@@ -170,8 +170,8 @@ def scrape_tournament(driver, link, level, matches, month_to_num):
         game2_player1_score = game2_scores[0].text
         game2_player2_score = game2_scores[1].text
 
-        new_match = MatchRecord(tournament_name=tournament_name_clean, tournament_level=level, match_date=date_of_tournament, 
-                                        round_name=round_info, player_1_id=player1_id, player_2_id=player2_id,
+        new_match = MatchRecord(tournament_name=tournament_name_clean, tournament_level=level, match_date=date_of_tournament,
+                                        round_name=round_info, match_category=match_type, player_1_id=player1_id, player_2_id=player2_id,
                                         winner_id=winner, g1_p1_score=game1_player1_score, g1_p2_score=game1_player2_score,
                                         g2_p1_score=game2_player1_score, g2_p2_score= game2_player2_score)
         matches.append(new_match)
@@ -194,7 +194,7 @@ def scrape_tournament(driver, link, level, matches, month_to_num):
         game3_player2_score = game3_scores[1].text
 
         new_match = MatchRecord(tournament_name=tournament_name_clean, tournament_level=level, match_date=date_of_tournament, 
-                                                round_name=round_info, player_1_id=player1_id, player_2_id=player2_id,
+                                                round_name=round_info, match_category=match_type,player_1_id=player1_id, player_2_id=player2_id,
                                                 winner_id=winner, g1_p1_score=game1_player1_score, g1_p2_score=game1_player2_score,
                                                 g2_p1_score=game2_player1_score, g2_p2_score= game2_player2_score,
                                                 g3_p1_score= game3_player1_score, g3_p2_score=game3_player2_score)
@@ -222,7 +222,7 @@ def scrape_match():
 
   chrome_options = uc.ChromeOptions()
   chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-  driver = uc.Chrome(options=chrome_options, version_main=149)
+  driver = uc.Chrome(options=chrome_options, version_main=152)
 
   # get the already scraped list of all tournaments
   df = pd.read_csv('data/all_tournaments.csv')
@@ -249,6 +249,7 @@ def scrape_match():
     # random sleep. 
     random_second = random.randint(10, 20)
     time.sleep(random_second)
+  
 
 if __name__ == "__main__":
   scrape_match()

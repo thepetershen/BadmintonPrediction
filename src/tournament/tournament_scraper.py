@@ -71,7 +71,7 @@ def filter_page(driver):
 
   #send in date filters
   date_input = driver.find_elements(By.XPATH,  "//input[@placeholder='click to select date']")
-  date_input[0].send_keys("01/01/2022")
+  date_input[0].send_keys("01/01/2018")
   date_input[1].send_keys("01/05/2026")
 
   time.sleep(1)
@@ -126,7 +126,7 @@ def scrape_tournaments():
   # use the hidden chromebrower as to not get blocked. 
   chrome_options = uc.ChromeOptions()
   chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-  driver = uc.Chrome(options=chrome_options, version_main=149)
+  driver = uc.Chrome(options=chrome_options, version_main=152)
   driver.get(url)
 
   time.sleep(3)
@@ -140,9 +140,9 @@ def scrape_tournaments():
 
   filter_page(driver)
 
-  # we will loop through all 12 pages, clicking next 11 times total
+  # we will loop through all 22 pages, clicking next 21 times total
 
-  for i in range (0, 11):
+  for i in range (0, 21):
     get_page_tournaments(driver, tournaments, tournaments_levels)
 
     next_page(driver)

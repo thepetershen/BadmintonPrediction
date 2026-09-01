@@ -9,6 +9,7 @@ class MatchRecord:
   tournament_level: int
   match_date: date
   round_name: str
+  match_category: str
   
   player_1_id: str
   player_2_id: str
@@ -32,6 +33,7 @@ class MatchRecordPublish:
   tournament_level: int
   match_date: date
   round_name: str
+  match_category: str
   
   player_1_name: str
   player_2_name: str
@@ -60,6 +62,7 @@ class MatchRecordRanked:
   tournament_level: int
   match_date: date
   round_name: str
+  match_category: str
   
   player_1_id: int
   player_2_id: int

@@ -8,9 +8,16 @@ import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
 from pandas.errors import EmptyDataError
 from src.match.rank_lookup import get_rank
+import json
 import os
 
 from src.match.models import MatchRecordPublish, MatchRecordRanked
+
+# columns a valid, non-empty match csv must have (mirrors the non-optional MatchRecord fields)
+REQUIRED_MATCH_COLUMNS = [
+  "tournament_name", "tournament_level", "match_date", "round_name", "match_category",
+  "player_1_id", "player_2_id", "winner_id", "g1_p1_score", "g1_p2_score",
+]
 
 def cookie_check(driver):
   try:
@@ -30,6 +37,15 @@ def reformat_tournament(driver, file_path, id_to_name, all_matches, all_matches_
   except EmptyDataError:
     print(f"Skipping {file_path}: File is empty.")
     return  # Or 'continue' if this is inside a loop of files
+
+  missing_columns = [col for col in REQUIRED_MATCH_COLUMNS if col not in df.columns]
+  if missing_columns:
+    print(f"Skipping {file_path}: Malformed csv, missing columns {missing_columns}.")
+    return
+
+  if df.empty:
+    print(f"Skipping {file_path}: No matches recorded.")
+    return
 
   tracked_year, tracked_week = 0, 0
   # we will track a dictionary of their ids to a tuple, being their ranks and highest rank
@@ -109,6 +125,7 @@ def reformat_tournament(driver, file_path, id_to_name, all_matches, all_matches_
       tournament_level=row['tournament_level'],
       match_date=row['match_date'],
       round_name=row['round_name'],
+      match_category=row['match_category'],
       
       g1_p1_score=row['g1_p1_score'],
       g1_p2_score=row['g1_p2_score'],
@@ -133,6 +150,7 @@ def reformat_tournament(driver, file_path, id_to_name, all_matches, all_matches_
       tournament_level=row['tournament_level'],
       match_date=row['match_date'],
       round_name=row['round_name'],
+      match_category=row['match_category'],
       
       g1_p1_score=row['g1_p1_score'],
       g1_p2_score=row['g1_p2_score'],
@@ -161,6 +179,16 @@ def process_matches():
   # we will aim to create 2 files. 1 where names are proccessed and one where they are not. (for publishing vs our use)
   # we will take use the player ids to perform looks of their name in df. If it doesn't exist, we will scrape it.
   id_to_name = {}
+  if os.path.exists('data/id_to_name.json') and os.path.getsize('data/id_to_name.json') > 0:
+    with open('data/id_to_name.json', 'r') as f:
+      # json keys are always strings, but ids from the dataframe are ints, so convert back
+      id_to_name = {int(player_id): name for player_id, name in json.load(f).items()}
+
+  # also seed from name_to_id.json (name -> id), inverted, in case it has entries id_to_name.json doesn't
+  if os.path.exists('data/name_to_id.json') and os.path.getsize('data/name_to_id.json') > 0:
+    with open('data/name_to_id.json', 'r') as f:
+      for name, player_id in json.load(f).items():
+        id_to_name.setdefault(int(player_id), name)
 
   # we need to be able to know the ranks of each players. since it has each week, we need to update, we go from past to present, and each tournament 1 week max, so we will use
   # the last needed week, if a new match is introduced, it is assumed that it will never go back
@@ -168,7 +196,7 @@ def process_matches():
 
   chrome_options = uc.ChromeOptions()
   chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-  driver = uc.Chrome(options=chrome_options, version_main=149)
+  driver = uc.Chrome(options=chrome_options, version_main=152)
 
   # stores all matches with id
   all_matches = []
@@ -215,7 +243,8 @@ def process_matches():
   df_matches.to_csv("data/all_match_id.csv", index=False)
   df_matches_publish.to_csv("data/all_match_name.csv", index=False)
 
-
+  with open('data/id_to_name.json', 'w') as f:
+    json.dump(id_to_name, f, indent=4)
 
   driver.quit()
 
