@@ -7,7 +7,7 @@ from src.training.train_XGB import train
 from src.training.train_GNN import train_gnn
 
 if __name__ == "__main__":
-    # scrape_tournaments()
+    #scrape_tournaments()
     # scrape_match()
     process_matches()
 

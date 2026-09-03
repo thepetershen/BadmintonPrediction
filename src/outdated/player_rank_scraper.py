@@ -26,9 +26,9 @@ headers = {
 }
 
 params = {
-    'playerId': '57945',
+    'playerId': '78778',
     'rankingId': '2',
-    'rankingCategoryId': '6',
+    'rankingCategoryId': '7',
     'year': '2024',
     'week': '2',
 }
@@ -82,20 +82,14 @@ def get_player_rank(player_id):
 
       current_rank = player_data['rank']
       highest_rank = player_data['highest_rank']
+      print(current_rank, highest_rank)
 
       rank_df.loc[len(rank_df)] = [player_id, year, week, current_rank, highest_rank]
 
   print (player_id + " done")
 
-# loop through the players id df and populate 
-for index, row in df.iterrows():
-  player_link = row['Player href']
 
-  link = player_link.split("/")
-
-  get_player_rank(link[4])
-
-  time.sleep(20)
+get_player_rank("78778")
 
 
 

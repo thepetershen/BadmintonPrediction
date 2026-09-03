@@ -98,6 +98,9 @@ def reformat_tournament(driver, file_path, id_to_name, all_matches, all_matches_
     else:
       winner_name = full_name_2
 
+    # MS and WS players are ranked under different BWF ranking categories
+    params['rankingCategoryId'] = '7' if row['match_category'] == 'WS' else '6'
+
     # if we are still on the current week of the tournament look through the cache to see if we already have the ranking
     if tournament_week == tracked_week and tournament_year == tracked_year:
       player_1_cur_rank, player_1_highest_rank = rankings.get(player_id_1, (None, None))

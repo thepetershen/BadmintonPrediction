@@ -72,7 +72,7 @@ def filter_page(driver):
   #send in date filters
   date_input = driver.find_elements(By.XPATH,  "//input[@placeholder='click to select date']")
   date_input[0].send_keys("01/01/2018")
-  date_input[1].send_keys("01/05/2026")
+  date_input[1].send_keys("01/08/2026")
 
   time.sleep(1)
 
@@ -140,9 +140,9 @@ def scrape_tournaments():
 
   filter_page(driver)
 
-  # we will loop through all 22 pages, clicking next 21 times total
+  # we will loop through all 23 pages, clicking next 22 times total
 
-  for i in range (0, 21):
+  for i in range (0, 22):
     get_page_tournaments(driver, tournaments, tournaments_levels)
 
     next_page(driver)
