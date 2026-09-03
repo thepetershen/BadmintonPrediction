@@ -27,26 +27,39 @@ If VSCode's "Run" button or integrated terminal is auto-activating `venv` (this 
 
 ```
 BadmintonPrediction/
-├── data/                          # Scraped/processed data (CSV outputs)
+├── data/                             # Scraped/processed data (mostly gitignored CSVs; lookup jsons are tracked)
+├── main.py                           # Top-level pipeline entrypoint (scrape -> process -> add features -> train)
 ├── src/
 │   ├── tournament/
-│   │   ├── tournament_scraper.py  # Scrapes tournament listings from bwfbadminton.com
-│   │   ├── match_scraper.py       # Scrapes individual match results within tournaments
-│   │   └── match_proccess.py      # Processes/compiles scraped match data
-│   └── player/
-│       ├── player_scraper.py      # Scrapes player data
-│       └── player_rank_scraper.py # Scrapes player rankings
+│   │   └── tournament_scraper.py     # Scrapes tournament listings from the bwfbadminton.com calendar
+│   ├── match/
+│   │   ├── match_scraper.py          # Scrapes MS/WS match results within a tournament
+│   │   ├── scrape_ws_backfill.py     # Backfills WS-only matches for tournaments scraped before WS support existed
+│   │   ├── combine_ms_ws.py          # Merges backfilled WS matches into the original MS-only raw tournament CSVs
+│   │   ├── match_proccess.py         # Compiles raw tournament CSVs into the master match dataset, incl. rank lookups
+│   │   ├── rank_lookup.py            # Queries BWF's ranking API for a player's rank at a given week
+│   │   ├── name_to_id.py             # Builds the combined name -> id lookup from the master match files
+│   │   └── models.py                 # Dataclasses for match records
+│   ├── features/
+│   │   ├── add_features.py           # Builds Elo/head-to-head/rank-diff features for training
+│   │   └── split_ms_ws_names.py      # Splits the name -> id lookup into separate MS/WS files
+│   ├── training/
+│   │   ├── train_RF.py               # Trains a Random Forest model
+│   │   ├── train_XGB.py              # Trains an XGBoost model
+│   │   ├── train_GNN.py              # Trains a GNN model
+│   │   └── test_models.py            # Model evaluation/testing
+│   ├── server/
+│   │   └── app.py                    # FastAPI backend: serves player lists and matchup predictions
+│   ├── frontend/                     # React (Vite) frontend for submitting matchups and viewing predictions
+│   │   └── src/
+│   │       ├── App.jsx
+│   │       ├── SearchComponent.jsx        # Category (MS/WS) + player selection, submits the matchup
+│   │       ├── PlayerDropdownComponent.jsx
+│   │       └── ExpectedWinnerComponent.jsx
+│   └── outdated/                     # Legacy scrapers no longer used in the active pipeline
 └── License.md
 ```
 
-## Setup
-
-<!-- TODO: flesh out once a main entry point is created -->
- No database is set up yet; data is currently written to local CSV files in `data/`.
-
-## Roadmap
-
-Currently scrapped informaiton, working on building very first model. 
 ## License
 
 See [License.md](License.md).

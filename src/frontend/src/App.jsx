@@ -16,7 +16,7 @@ function App() {
           Hey! Welcome to Badminton Match Result Predictor. This site aggregated publicly availible badminton match data to train several models in order to predict the result of a badminton match.
           It is trained upon matches from Super 300 and above events from 2022 - 2026 (post pandemic).
           Try out the model!
-          This project is also open sourced! Check out more info in methodology.
+          This project is also open sourced! https://github.com/thepetershen/BadmintonPrediction
         </p>
       </div>
       <SearchComponent setWinnerInfo = {setWinnerInfo}/>
