@@ -9,13 +9,13 @@ from src.training.train_GNN import train_gnn
 if __name__ == "__main__":
     #scrape_tournaments()
     # scrape_match()
-    process_matches()
+    # process_matches()
 
     # add_features()
 
-    # train_RF()
-    # train()
-    # train_gnn()
+    train_RF()
+    train()
+    train_gnn()
 
     # test_all()
     # test_xgb_symmetry()

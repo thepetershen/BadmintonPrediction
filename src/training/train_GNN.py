@@ -8,11 +8,11 @@ from torch_geometric.data import Data
 from sklearn.metrics import accuracy_score, classification_report
 import joblib
 
-# this model was created by an llm as a test a GNN model. 
+from src.training.date_splits import VAL_START, TEST_START
+
+# this model was created by an llm as a test a GNN model.
 
 DATA_PATH = "data/all_match_id_proccessed.csv"
-VAL_START = pd.Timestamp("2025-08-01")
-TEST_START = pd.Timestamp("2026-01-01")
 
 P1_NODE_COLS = ["p1_elo_pre_match", "p1_point_elo_pre_match", "player_1_rank"]
 P2_NODE_COLS = ["p2_elo_pre_match", "p2_point_elo_pre_match", "player_2_rank"]

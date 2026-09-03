@@ -5,17 +5,15 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
 import joblib
 
+from src.training.date_splits import split_by_date
+
 def split_data():
   df = pd.read_csv("data/all_match_id_proccessed.csv")
 
   df['match_date'] = pd.to_datetime(df['match_date'])
   df['p1_won'] = (df['winner_id'] == df['player_1_id']).astype(int) # its just conventient to put this code here
   # we will split into train, validation, and testing
-  train_df = df[df['match_date'] < '2025-08-01']
-
-  val_df = df[(df['match_date'] >= '2025-08-01') & (df['match_date'] < '2026-01-01')]
-
-  test_df = df[df['match_date'] >= '2026-01-01']
+  train_df, val_df, test_df = split_by_date(df)
 
   print(len(train_df), len(val_df), len(test_df))
 
@@ -25,7 +23,7 @@ def split_data():
 def prepare_data(train_df, val_df, test_df):
 
   columns_to_drop = ["tournament_name", "tournament_level", "match_date", "round_name", "player_1_id", "player_2_id", "winner_id",
-                     "g1_p1_score", "g1_p2_score", "g2_p1_score", "g2_p2_score", "g3_p1_score", "g3_p2_score"]
+                     "g1_p1_score", "g1_p2_score", "g2_p1_score", "g2_p2_score", "g3_p1_score", "g3_p2_score", "match_category"]
                 
   target_col = "p1_won"
 
