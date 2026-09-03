@@ -45,7 +45,7 @@ def prepare_data(train_df, val_df, test_df, augment=True):
                      # raw ranks are redundant with rank_diff/highest_rank_diff (which encode the same info more directly for tree splits)
                      "player_1_rank", "player_2_rank", "player_1_rank_highest", "player_2_rank_highest",
                      # experiment: permutation importance showed these near-zero/negative on validation despite high split importance
-                     "p1_elo_pre_match", "p2_elo_pre_match", "p1_point_elo_pre_match", "p2_point_elo_pre_match"]
+                     "p1_elo_pre_match", "p2_elo_pre_match", "p1_point_elo_pre_match", "p2_point_elo_pre_match", "match_category"]
   target_col = "p1_won"
 
   def to_x_y(df):
