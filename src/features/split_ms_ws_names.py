@@ -2,7 +2,7 @@ import pandas as pd
 import json
 
 # a player only ever competes in one category (MS or WS), so we can split the
-# name->id lookup in two just by reading off match_category per match row.
+# name id lookup in two just by reading match category
 def split_ms_ws_names():
   df_name = pd.read_csv("data/all_match_name.csv")
   df_id = pd.read_csv("data/all_match_id.csv")

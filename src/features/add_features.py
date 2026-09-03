@@ -32,9 +32,9 @@ def get_match_points(row):
 def add_features():
   df = pd.read_csv("data/all_match_id.csv", parse_dates=["match_date"])
   # we will assume the df is sorted by date already (it should be as we aded in order)
-  player_elo = {}       # player_id -> current Elo rating
-  player_point_elo = {} # player_id -> current point-share Elo rating
-  h2h_tracker = {}      # sorted (id_a, id_b) -> {player_id: wins}, order-independent
+  player_elo = {}       
+  player_point_elo = {} 
+  h2h_tracker = {}     
 
   h2h_correct = 0   # predictions made using prior h2h record that were right
   h2h_total = 0      # matches where the two players had a prior head-to-head record

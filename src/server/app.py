@@ -145,7 +145,7 @@ def predict_match(player1_name: str, player2_name: str):
       "highest_rank_diff": -rank_highest_diff,
     },
   ])
-  proba = model.predict_proba(X)   # row 0 = forward (p1,p2), row 1 = reversed (p2,p1)
+  proba = model.predict_proba(X)   
   forward_p1_win_prob = float(proba[0][1])
   reversed_p1_win_prob = float(proba[1][1])
 

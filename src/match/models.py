@@ -52,7 +52,7 @@ class MatchRecordPublish:
   g2_p1_score: Optional[int] = None
   g2_p2_score: Optional[int] = None
   
-  # Game 3 (Optional for straight-set matches)
+  # Game 3 
   g3_p1_score: Optional[int] = None
   g3_p2_score: Optional[int] = None
 
@@ -81,6 +81,6 @@ class MatchRecordRanked:
   g2_p1_score: Optional[int] = None
   g2_p2_score: Optional[int] = None
   
-  # Game 3 (Optional for straight-set matches)
+  # Game 3 
   g3_p1_score: Optional[int] = None
   g3_p2_score: Optional[int] = None

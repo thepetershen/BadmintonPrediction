@@ -13,7 +13,6 @@ def get_rank(playerid, tournament_year, tournament_week, params, headers):
     print(f"Error {response.status_code}: Failed to fetch data. Skipping...")
     return (None, None)
 
-  # 2. Safely parse the JSON
   try:
     json_data = response.json()
   except ValueError:

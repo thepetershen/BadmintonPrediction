@@ -35,8 +35,6 @@ function PlayerDropdownComponent({ players, player, setPlayer }) {
           {filtered.map((name) => (
             <li
               key={name}
-              // onMouseDown fires before the input's onBlur, so the click
-              // registers before the list closes
               onMouseDown={() => handleSelect(name)}
             >
               {name}
