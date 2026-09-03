@@ -7,21 +7,32 @@ const SERVER_API_URL = import.meta.env.VITE_API_URL
 // the search componenet will contain 3 components. the two players, each with searchable fields
 // and the submit bar. 
 function SearchComponent({ setWinnerInfo }) {
+  // MS/WS have separate player pools, so nothing is fetched until one is picked
+  const [category, setCategory] = useState('');
   // keeps track of the names of the two players
   const [player1Name, setPlayer1Name] = useState(0);
   const [player2Name, setPlayer2Name] = useState(0);
   const [playerList, setPlayerList] = useState([]);
   const [error, setError] = useState(null);
 
-  useEffect(() => { 
+  useEffect(() => {
+    // switching category invalidates whatever was selected under the old one
+    setPlayer1Name(0);
+    setPlayer2Name(0);
+
+    if (!category) {
+      setPlayerList([]);
+      return;
+    }
+
     const fetchUsers = async () => {
       try {
-        const response = await fetch(SERVER_API_URL + "players");
-        
+        const response = await fetch(SERVER_API_URL + "players/" + category);
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         setPlayerList(data);
       } catch (err) {
@@ -29,7 +40,7 @@ function SearchComponent({ setWinnerInfo }) {
       }
     }
     fetchUsers();
-  }, []);
+  }, [category]);
 
   const handleClick = async () => {
     try {
@@ -49,12 +60,23 @@ function SearchComponent({ setWinnerInfo }) {
 
   return (
     <div className="search-component">
+      <select
+        className="category-select"
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
+      >
+        <option value="">Select category...</option>
+        <option value="MS">Men's Singles</option>
+        <option value="WS">Women's Singles</option>
+      </select>
       <PlayerDropdownComponent
+        key = {"player1-" + category}
         players = {playerList}
         player = {player1Name}
         setPlayer = {setPlayer1Name}
       />
       <PlayerDropdownComponent
+        key = {"player2-" + category}
         players = {playerList}
         player = {player2Name}
         setPlayer = {setPlayer2Name}

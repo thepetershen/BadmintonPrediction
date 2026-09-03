@@ -32,11 +32,30 @@ model = joblib.load('data/models/xgb_badminton_model.joblib')
 # the head to head can easily be found.
 
 # load the name to id
+
 with open('data/name_to_id.json', 'r') as f:
   name_to_id = {str(k): v for k, v in json.load(f).items()}
 
+with open('data/ms_name_to_id.json', 'r') as f:
+  ms_name_to_id = {str(k): v for k, v in json.load(f).items()}
+
+with open('data/ws_name_to_id.json', 'r') as f:
+  ws_name_to_id = {str(k): v for k, v in json.load(f).items()}
+
 with open('data/h2h.json', 'r') as f:
   h2h = {str(k): v for k, v in json.load(f).items()}
+
+ms_player_list = []
+for key, value in ms_name_to_id.items():
+  ms_player_list.append(key)
+ms_player_list.sort()
+
+ws_player_list = []
+for key, value in ws_name_to_id.items():
+  ws_player_list.append(key)
+ws_player_list.sort()
+
+
 
 # headers for getting ranks
 headers = {
@@ -62,13 +81,14 @@ params = {
   'week': '2',
 }
 
-@app.get("/players")
-def list_players():
-  player_list = []
-  for key, value in name_to_id.items():
-    player_list.append(key)
-  player_list.sort()
-  return player_list
+@app.get("/players/{category}")
+def list_players(category: str):
+  if category == "MS":
+    return ms_player_list
+  elif category == "WS":
+    return ws_player_list
+  else: 
+    raise HTTPException(status_code=404, detail="invalid category")
 
 @app.get("/predict/matchup/{player1_name}/{player2_name}")
 def predict_match(player1_name: str, player2_name: str):
