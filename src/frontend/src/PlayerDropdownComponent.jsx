@@ -17,19 +17,38 @@ function PlayerDropdownComponent({ players, player, setPlayer }) {
     setIsOpen(false)
   }
 
+  function handleClear() {
+    setPlayer('')
+    setQuery('')
+    setIsOpen(false)
+  }
+
   return (
-    <div className="player-dropdown">
+    <div className={`player-dropdown${player ? ' has-selection' : ''}`}>
       <input
         type="text"
         value={query}
         placeholder="Search players..."
         onChange={(e) => {
+          setPlayer('')
           setQuery(e.target.value)
           setIsOpen(true)
         }}
         onFocus={() => setIsOpen(true)}
         onBlur={() => setIsOpen(false)}
       />
+      {Boolean(player) && (
+        <button
+          type="button"
+          className="player-dropdown-clear"
+          aria-label={`Clear ${player}`}
+          title="Clear selected player"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={handleClear}
+        >
+          &times;
+        </button>
+      )}
       {isOpen && filtered.length > 0 && (
         <ul className="player-dropdown-list">
           {filtered.map((name) => (
